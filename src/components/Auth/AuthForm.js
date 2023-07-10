@@ -12,43 +12,52 @@ const AuthForm = () => {
     setIsLogin((prevState) => !prevState);
   };
 
-  async function formSubmission(event) {
+  const formSubmission = (event) => {
     event.preventDefault();
     const emailValue = emailRef.current.value;
     const passValue = passwordRef.current.value;
     setIsLoading(true);
+    let url;
     if (isLogin) {
+      url =
+        "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAKU4q2CTZZAoZ5TqdKPLlU7bJIwmX0kJs";
     } else {
-      try {
-        const res = await fetch(
-          "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAKU4q2CTZZAoZ5TqdKPLlU7bJIwmX0kJs",
-          {
-            method: "POST",
-            body: JSON.stringify({
-              email: emailValue,
-              password: passValue,
-              returnSecureToken: true,
-            }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        ).then((res) => {
-          if (res.ok) {
-          } else {
-            return res.json().then((data) => {
-              let errorMessage = "Authentication failed";
-              if (data && data.error && data.error.message) {
-                //if we have data, and data has an error object with some message proprety, then we make our errorMessage equal to that message.
-                errorMessage = data.error.message;
-              }
-              alert(errorMessage);
-            });
-          }
-        });
-      } catch {}
+      url =
+        "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAKU4q2CTZZAoZ5TqdKPLlU7bJIwmX0kJs";
     }
-  }
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify({
+        email: emailValue,
+        password: passValue,
+        returnSecureToken: true,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        setIsLoading(false);
+        if (res.ok) {
+          return res.json();
+        } else {
+          return res.json().then((data) => {
+            let errorMessage = "Authentication failed";
+            // if (data && data.error && data.error.message) {
+            //   //if we have data, and data has an error object with some message proprety, then we make our errorMessage equal to that message.
+            //   errorMessage = data.error.message;
+            // }
+            throw new Error(errorMessage);
+          });
+        }
+      })
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((err) => {
+        alert(err.message);
+      });
+  };
 
   return (
     <section className={classes.auth}>
